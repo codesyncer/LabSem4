@@ -53,8 +53,12 @@ def is_stable(wife_of, w_m_pref):
                     w_m_pref[wife_of[other_man]][other_man]:
                 return False
     return True
-    pass
 
+
+def main2():
+    with open('input.txt') as file:
+        men = file.readline().split()
+        women = file.readline().split()
 
 if __name__ == '__main__':
     main()
