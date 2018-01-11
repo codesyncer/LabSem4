@@ -55,10 +55,17 @@ def is_stable(wife_of, w_m_pref):
     return True
 
 
+def foo(pre, i, n):
+    if i == n:
+        return pre
+    for j in range(n):
+        pass
+
 def main2():
     with open('input.txt') as file:
         men = file.readline().split()
         women = file.readline().split()
+
 
 if __name__ == '__main__':
     main()
