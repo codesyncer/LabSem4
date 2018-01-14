@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
+#include <limits.h>
 
 #define p_n (sizeof(p_sizes)/sizeof(int))
 
@@ -15,17 +16,9 @@ int p_offset[p_n] = {0};
 int p_occupied[p_n] = {0};
 int p_sizes_sorted[p_n];
 int p_virtual_to_real_i[p_n];
+int allocated = 0;
 
-void *first_fit(int size) {
-    for (int i = 0; i < p_n; ++i) {
-        if (p_occupied[i] == 0 && p_sizes[i] >= size) {
-            p_occupied[i] = size;
-            return mem + p_offset[i];
-        }
-    }
-    return NULL;
-}
-
+// Finds first value in array >= x
 int ge_x(const int *arr, int n, int x) {
     int low = 0, mid, end = n - 1;
     do {
@@ -39,6 +32,7 @@ int ge_x(const int *arr, int n, int x) {
     return arr[mid] < x ? -1 : mid;
 }
 
+// Finds value in array == x
 int e_x(const int *arr, int n, int x) {
     int low = 0, mid, end = n - 1;
     do {
@@ -53,6 +47,18 @@ int e_x(const int *arr, int n, int x) {
     return -1;
 }
 
+void *first_fit(int size) {
+    for (int i = 0; i < p_n; ++i) {
+        if (p_occupied[i] == 0 && p_sizes[i] >= size) {
+            p_occupied[i] = size;
+            allocated += size;
+            return mem + p_offset[i];
+        }
+    }
+    return NULL;
+}
+
+// Best fits by binary-searching scan start point
 void *best_fit(int size) {
     int start_scan = ge_x(p_sizes_sorted, p_n, size);
     if (start_scan == -1)
@@ -62,18 +68,21 @@ void *best_fit(int size) {
         ri = p_virtual_to_real_i[i];
         if (p_occupied[ri] == 0 && p_sizes[ri] >= size) {
             p_occupied[ri] = size;
+            allocated += size;
             return mem + p_offset[ri];
         }
     }
     return NULL;
 }
 
+// Worst fits by reverse traversing sorted p_sizes
 void *worst_fit(int size) {
     int ri;
     for (int i = p_n - 1; i >= 0; --i) {
         ri = p_virtual_to_real_i[i];
         if (p_occupied[ri] == 0 && p_sizes[ri] >= size) {
             p_occupied[ri] = size;
+            allocated += size;
             return mem + p_offset[ri];
         }
     }
@@ -85,12 +94,14 @@ void *alloc(int size, void *(*fitter)(int)) {
     return fitter(size);
 }
 
-void dealloc(void *ptr) {
+bool dealloc(void *ptr) {
     int offset = (int) (ptr - mem);
     int p_index = e_x(p_offset, p_n, offset);
-    if (p_index == -1)
-        return;
+    if (p_index == -1 || p_occupied[p_index] == 0)
+        return false;
+    allocated -= p_occupied[p_index];
     p_occupied[p_index] = 0;
+    return true;
 }
 
 void swap(int *a, int *b) {
@@ -113,17 +124,16 @@ void prepare_tables() {
             }
 }
 
-//void arrPrint(int *arr, int n) {
-//    for (int i = 0; i < n; ++i)
-//        printf("%5d", arr[i]);
-//    printf("\n");
-//}
 
 void pPrint() {
+    int int_frag = 0;
     for (int i = 0; i < p_n; ++i) {
-        printf("| s:%d o:%d ", p_sizes[i], p_occupied[i]);
+        printf("| %d/%d ", p_occupied[i], p_sizes[i]);
+        if (p_occupied[i] != 0)
+            int_frag += p_sizes[i] - p_occupied[i];
     }
     printf("|\n");
+    printf("Internal fragmentation: %d KiB", int_frag);
 }
 
 //Variable Size Partitioning
@@ -133,6 +143,7 @@ struct Partition {
     bool occupied;
     struct Partition *next;
 };
+int v_allocated = 0;
 
 void initPartition(struct Partition *part, int size, struct Partition *next) {
     part->size = size;
@@ -142,23 +153,32 @@ void initPartition(struct Partition *part, int size, struct Partition *next) {
 
 struct Partition *head;
 
-void *v_alloc(int size) {
+// Partially occupy a partition by splitting it into occupied and vacant partitions
+struct Partition *partially_occupy(struct Partition *part, int size) {
+    struct Partition *new = (struct Partition *) malloc(sizeof(struct Partition));
+    if (new == NULL)
+        return NULL;
+    initPartition(new, part->size - size, part->next);
+    part->size = size;
+    part->occupied = true;
+    part->next = new;
+    return new;
+}
+
+// Traverse LL to find suitable partition
+void *v_first_fit(int size) {
     int offset = 0;
     struct Partition *part = head;
     while (part != NULL) {
         if (part->occupied == false) {
             if (part->size > size) {
-                struct Partition *new = (struct Partition *) malloc(sizeof(struct Partition));
-                if (new == NULL)
-                    return NULL;
-                initPartition(new, part->size - size, part->next);
-                part->size = size;
-                part->occupied = true;
-                part->next = new;
+                partially_occupy(part, size);
+                v_allocated += size;
                 return mem + offset;
             }
             if (part->size == size) {
                 part->occupied = true;
+                v_allocated += size;
                 return mem + offset;
             }
         }
@@ -168,44 +188,111 @@ void *v_alloc(int size) {
     return NULL;
 }
 
-void v_dealloc(void *ptr) {
+// Traverse LL to find partition have min extra capacity
+void *v_best_fit(int size) {
+    int offset = 0;
+    struct Partition *part = head, *best_part = NULL;
+    int min_diff = INT_MAX, best_offset = 0;
+    while (part != NULL) {
+        if (part->occupied == false) {
+            if (part->size == size) {
+                part->occupied = true;
+                v_allocated += size;
+                return mem + offset;
+            }
+            if (part->size > size && part->size - size < min_diff) {
+                best_part = part;
+                min_diff = part->size - size;
+                best_offset = offset;
+            }
+        }
+        offset += part->size;
+        part = part->next;
+    }
+    if (best_part != NULL) {
+        partially_occupy(best_part, size);
+        v_allocated += size;
+        return mem + best_offset;
+    }
+    return NULL;
+}
+
+// Traverse LL to find partition having max extra capacity
+void *v_worst_fit(int size) {
+    int offset = 0;
+    struct Partition *part = head, *worst_part = NULL;
+    int max_diff = -1, worst_offset = 0;
+    while (part != NULL) {
+        if (part->occupied == false) {
+            if (part->size >= size && part->size - size > max_diff) {
+                worst_part = part;
+                max_diff = part->size - size;
+                worst_offset = offset;
+            }
+        }
+        offset += part->size;
+        part = part->next;
+    }
+    if (worst_part != NULL) {
+        if (worst_part->size == size) {
+            worst_part->occupied = true;
+            v_allocated += size;
+            return mem + worst_offset;
+        } else {
+            partially_occupy(worst_part, size);
+            v_allocated += size;
+            return mem + worst_offset;
+        }
+    }
+    return NULL;
+}
+
+void *v_alloc(int size, void *(*fitter)(int)) {
+    return fitter(size);
+}
+
+// Deallocate partition and merge with vacant neighbours if any
+bool v_dealloc(void *ptr) {
     int dest_offset = (int) (ptr - mem), offset = 0;
     struct Partition *part = head, *prevPart = NULL;
     while (part != NULL) {
         if (offset == dest_offset) {
+            v_allocated -= part->size;
             struct Partition *nextPart = part->next;
             if (prevPart != NULL && prevPart->occupied == false && nextPart != NULL && nextPart->occupied == false) {
                 prevPart->size += part->size + nextPart->size;
                 prevPart->next = nextPart->next;
                 free(part);
                 free(nextPart);
-                return;
+                return true;
             }
             if (prevPart != NULL && prevPart->occupied == false) {
                 prevPart->size += part->size;
                 prevPart->next = nextPart;
                 free(part);
-                return;
+                return true;
             }
             if (nextPart != NULL && nextPart->occupied == false) {
                 part->size += nextPart->size;
                 part->next = nextPart->next;
                 part->occupied = false;
                 free(nextPart);
-                return;
+                return true;
             }
             part->occupied = false;
+            return true;
         }
         offset += part->size;
         prevPart = part;
         part = part->next;
     }
+    return false;
 }
 
 void v_pPrint() {
     struct Partition *part = head;
     while (part != NULL) {
-        printf("| s:%d o:%d ", part->size, part->occupied ? part->size : 0);
+        printf("| %d/%d ", part->occupied ? part->size : 0, part->size);
         part = part->next;
     }
     printf("|\n");
@@ -213,34 +300,89 @@ void v_pPrint() {
 
 int testFixedPart() {
     prepare_tables();
-    pPrint();
-    void *p1 = alloc(30, first_fit);
-    void *p2 = alloc(10, best_fit);
-    void *p3 = alloc(10, worst_fit);
-    dealloc(p1);
-    dealloc(p3);
-    dealloc(p2);
-    pPrint();
+    int option = 0, size;
+    void *loc;
+    while (option != 6) {
+        printf("\n\n1) First Fit Allocate\n2) Best Fit Allocate\n3) Worst Fit Allocate\n4) Deallocate\n5) Show Partitioning\n6) Quit");
+        printf("\nEnter option: ");
+        scanf("%d", &option);
+        printf("\n");
+        switch (option) {
+            case 1:
+            case 2:
+            case 3:
+                printf("Enter size of process: ");
+                scanf("%d", &size);
+                loc = alloc(size, option == 1 ? first_fit : option == 2 ? best_fit : worst_fit);
+                if (loc == NULL)
+                    printf("Unable to allocate %s", allocated < mem_size ? "due to internal fragmentation" : "");
+                else printf("Allocated %d KiB at %p, offset %d", size, loc, (int) (loc - mem));
+                break;
+            case 4:
+                printf("Enter offset of process: ");
+                scanf("%d", &size);
+                if (dealloc(mem + size))
+                    printf("Deallocated!");
+                else
+                    printf("Failed!");
+                break;
+            case 5:
+                pPrint();
+                break;
+            case 6:
+                break;
+            default:
+                break;
+        }
+    }
 }
 
 int testVariablePart() {
     head = (struct Partition *) malloc(sizeof(struct Partition));
     initPartition(head, (int) mem_size, NULL);
-    v_pPrint();
-    void *p1 = v_alloc(30);
-    void *p2 = v_alloc(10);
-    void *p3 = v_alloc(10);
-    v_dealloc(p1);
-    v_dealloc(p3);
-    v_dealloc(p2);
-    v_pPrint();
+    int option = 0, size;
+    void *loc;
+    while (option != 6) {
+        printf("\n\n1) First Fit Allocate\n2) Best Fit Allocate\n3) Worst Fit Allocate\n4) Deallocate\n5) Show Partitioning\n6) Quit");
+        printf("\nEnter option: ");
+        scanf("%d", &option);
+        printf("\n");
+        switch (option) {
+            case 1:
+            case 2:
+            case 3:
+                printf("Enter size of process: ");
+                scanf("%d", &size);
+                loc = v_alloc(size, option == 1 ? v_first_fit : option == 2 ? v_best_fit : v_worst_fit);
+                if (loc == NULL)
+                    printf("Unable to allocate %s", v_allocated < size ? "due to external fragmentation" : "");
+                else printf("Allocated %d KiB at %p, offset %d", size, loc, (int) (loc - mem));
+                break;
+            case 4:
+                printf("Enter offset of process: ");
+                scanf("%d", &size);
+                if (v_dealloc(mem + size))
+                    printf("Deallocated!");
+                else
+                    printf("Failed!");
+                break;
+            case 5:
+                v_pPrint();
+                break;
+            case 6:
+                break;
+            default:
+                break;
+        }
+    }
 }
 
 int main() {
     mem = malloc(mem_size * multiplier);
     if (mem == NULL)
         return 1;
-    testVariablePart();
+//    Uncomment anyone tester to test
+//    testVariablePart();
     testFixedPart();
     free(mem);
     return 0;
