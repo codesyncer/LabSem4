@@ -1,6 +1,7 @@
-public class TabledAllocator implements Allocator {
-    private int frameSize, nFrames, allocFrames;
-    Frame[] frames;
+import java.util.HashMap;
+
+public class TabledAllocator extends Allocator {
+    private HashMap<String, Frame> frameTable = new HashMap<>();
 
     TabledAllocator(int total, int pSize) {
         frameSize = pSize;
@@ -13,19 +14,15 @@ public class TabledAllocator implements Allocator {
         if (allocFrames + (size % frameSize == 0 ? size / frameSize : size / frameSize + 1) > nFrames)
             return null;
         Process pro = new Process(name, size);
-        Frame prev = null, frame;
+        Frame frame;
         int loc = 0, count = 0;
         while (size > 0) {
             while (loc < nFrames && frames[loc] != null)
                 loc++;
             if (loc < nFrames) {
                 frame = new Frame(pro, count++, loc);
+                frameTable.put(pro.getName() + frame.whichFrame, frame);
                 frames[loc] = frame;
-                if (prev != null)
-                    prev.setNext(frame);
-                else
-                    pro.setHead(frames[loc]);
-                prev = frame;
                 allocFrames++;
             }
             size -= frameSize;
@@ -34,28 +31,14 @@ public class TabledAllocator implements Allocator {
     }
 
     public void dealloc(Process pro) {
-        Frame frame = pro.getHead(), prev = null;
+        int whichFrame = 0;
+        Frame frame = frameTable.remove(pro.getName() + whichFrame);
         while (frame != null) {
             frames[frame.frameIndex] = null;
-            if (prev != null)
-                prev.setNext(null);
-            prev = frame;
-            frame = frame.getNext();
             allocFrames--;
+            whichFrame++;
+            frame = frameTable.remove(pro.getName() + whichFrame);
         }
-        pro.setHead(null);
     }
 
-    public String toString() {
-        StringBuilder fig = new StringBuilder();
-        for (int i = 0; i < nFrames; ++i) {
-            if (frames[i] == null)
-                fig.append("| -- ");
-            else
-                fig.append(String.format("| %s,%d ", frames[i].pro.getName(), frames[i].whichFrame));
-        }
-        if (fig.length() != 0)
-            fig.append("|");
-        return fig.toString();
-    }
 }

@@ -1,5 +1,3 @@
-import java.util.Queue;
-
 class Frame {
     int frameIndex, whichFrame;
     Process pro;
@@ -20,9 +18,7 @@ class Frame {
     }
 }
 
-public class LinkedAllocator implements Allocator {
-    private int frameSize, nFrames, allocFrames;
-    Frame[] frames;
+public class LinkedAllocator extends Allocator {
 
     LinkedAllocator(int total, int pSize) {
         frameSize = pSize;
@@ -30,6 +26,7 @@ public class LinkedAllocator implements Allocator {
         frames = new Frame[nFrames];
         allocFrames = 0;
     }
+
 
     public Process alloc(String name, int size) {
         if (allocFrames + (size % frameSize == 0 ? size / frameSize : size / frameSize + 1) > nFrames)
@@ -66,18 +63,5 @@ public class LinkedAllocator implements Allocator {
             allocFrames--;
         }
         pro.setHead(null);
-    }
-
-    public String toString() {
-        StringBuilder fig = new StringBuilder();
-        for (int i = 0; i < nFrames; ++i) {
-            if (frames[i] == null)
-                fig.append("| -- ");
-            else
-                fig.append(String.format("| %s,%d ", frames[i].pro.getName(), frames[i].whichFrame));
-        }
-        if (fig.length() != 0)
-            fig.append("|");
-        return fig.toString();
     }
 }
