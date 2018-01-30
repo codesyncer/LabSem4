@@ -16,7 +16,7 @@ int p_offset[p_n] = {0};
 int p_occupied[p_n] = {0};
 int p_sizes_sorted[p_n];
 int p_virtual_to_real_i[p_n];
-int allocated = 0;
+int frag = 0;
 
 // Finds first value in array >= x
 int ge_x(const int *arr, int n, int x) {
@@ -51,7 +51,7 @@ void *first_fit(int size) {
     for (int i = 0; i < p_n; ++i) {
         if (p_occupied[i] == 0 && p_sizes[i] >= size) {
             p_occupied[i] = size;
-            allocated += size;
+            frag += p_sizes[i] - size;
             return mem + p_offset[i];
         }
     }
@@ -68,8 +68,8 @@ void *best_fit(int size) {
         ri = p_virtual_to_real_i[i];
         if (p_occupied[ri] == 0 && p_sizes[ri] >= size) {
             p_occupied[ri] = size;
-            allocated += size;
-            return mem + p_offset[ri];
+            frag += p_sizes[ri] - size;
+            return mem + p_offset[i];
         }
     }
     return NULL;
@@ -82,7 +82,7 @@ void *worst_fit(int size) {
         ri = p_virtual_to_real_i[i];
         if (p_occupied[ri] == 0 && p_sizes[ri] >= size) {
             p_occupied[ri] = size;
-            allocated += size;
+            frag += p_sizes[ri] - size;
             return mem + p_offset[ri];
         }
     }
@@ -99,7 +99,7 @@ bool dealloc(void *ptr) {
     int p_index = e_x(p_offset, p_n, offset);
     if (p_index == -1 || p_occupied[p_index] == 0)
         return false;
-    allocated -= p_occupied[p_index];
+    frag -= (p_sizes[p_index] - p_occupied[p_index]);
     p_occupied[p_index] = 0;
     return true;
 }
@@ -114,7 +114,7 @@ void prepare_tables() {
     for (int i = 0; i < p_n; ++i)
         p_virtual_to_real_i[i] = i;
     for (int i = 1; i < p_n; ++i)
-        p_offset[i] = p_offset[i - 1] + p_sizes[i];
+        p_offset[i] = p_offset[i - 1] + p_sizes[i-1];
     memcpy(p_sizes_sorted, p_sizes, p_n * sizeof(int));
     for (int i = 0; i <= p_n - 2; ++i)
         for (int j = 0; j <= p_n - i - 2; ++j)
@@ -315,7 +315,7 @@ int testFixedPart() {
                 scanf("%d", &size);
                 loc = alloc(size, option == 1 ? first_fit : option == 2 ? best_fit : worst_fit);
                 if (loc == NULL)
-                    printf("Unable to allocate %s", allocated < mem_size ? "due to internal fragmentation" : "");
+                    printf("Unable to allocate");
                 else printf("Allocated %d KiB at %p, offset %d", size, loc, (int) (loc - mem));
                 break;
             case 4:
@@ -355,7 +355,8 @@ int testVariablePart() {
                 scanf("%d", &size);
                 loc = v_alloc(size, option == 1 ? v_first_fit : option == 2 ? v_best_fit : v_worst_fit);
                 if (loc == NULL)
-                    printf("Unable to allocate %s", v_allocated < size ? "due to external fragmentation" : "");
+                    printf("Unable to allocate %s",
+                           v_allocated + size <= mem_size ? "due to external fragmentation" : "");
                 else printf("Allocated %d KiB at %p, offset %d", size, loc, (int) (loc - mem));
                 break;
             case 4:
@@ -381,7 +382,7 @@ int main() {
     mem = malloc(mem_size * multiplier);
     if (mem == NULL)
         return 1;
-//    Uncomment anyone tester to test
+//    Uncomment any ONE tester to test
 //    testVariablePart();
     testFixedPart();
     free(mem);
