@@ -1,4 +1,0 @@
-/tmp/ccIc8xLk.o: In function `init':
-main.c:(.text+0x32): undefined reference to `log'
-main.c:(.text+0x4b): undefined reference to `floor'
-collect2: error: ld returned 1 exit status

@@ -1,5 +1,0 @@
-gcc $1 -o dotslash
-if test $? -eq 0; then 
-	echo '-OUTPUT-'
-	./dotslash
-fi
