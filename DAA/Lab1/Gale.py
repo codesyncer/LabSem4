@@ -45,28 +45,28 @@ def main():
         print(men[i] + ' - ' + women[wife_of[i]])
 
 
-# def is_stable(wife_of, w_m_pref):
-#     n = len(wife_of)
-#     for man in range(n):
-#         for other_man in range(n):
-#             if w_m_pref[wife_of[man]][other_man] < w_m_pref[wife_of[man]][man] and\
-#  w_m_pref[wife_of[other_man]][man] < \
-#                     w_m_pref[wife_of[other_man]][other_man]:
-#                 return False
-#     return True
-#
-#
-# def foo(pre, i, n):
-#     if i == n:
-#         return pre
-#     for j in range(n):
-#         pass
-#
-#
-# def main2():
-#     with open('input.txt') as file:
-#         men = file.readline().split()
-#         women = file.readline().split()
+def is_stable(wife_of, w_m_pref):
+    n = len(wife_of)
+    for man in range(n):
+        for other_man in range(n):
+            if w_m_pref[wife_of[man]][other_man] < w_m_pref[wife_of[man]][man] and\
+ w_m_pref[wife_of[other_man]][man] < \
+                    w_m_pref[wife_of[other_man]][other_man]:
+                return False
+    return True
+
+
+def foo(pre, i, n):
+    if i == n:
+        return pre
+    for j in range(n):
+        pass
+
+
+def main2():
+    with open('input.txt') as file:
+        men = file.readline().split()
+        women = file.readline().split()
 
 
 if __name__ == '__main__':
