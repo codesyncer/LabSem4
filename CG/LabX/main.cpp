@@ -22,17 +22,36 @@ void drawLineDDA(int x1, int y1, int x2, int y2) {
     glEnd();
 }
 
-void drawLineMidPoint(int x1, int y1, int x2, int y2) {}
+void drawLineBresenham(int x1, int y1, int x2, int y2) {
+    int dx = x2 - x1, dy = y2 - y1;
+    int p = 2 * dy + dx;
+    int x = x1, y = y1;
+    glBegin(GL_POINTS);
+    while (x <= x2) {
+        glVertex2i(x, y);
+        ++x;
+        if (p >= 0) {
+            ++y;
+            p -= 2 * dx;
+        }
+        p += 2 * dy;
+    }
+    glEnd();
+}
 
 void drawCircleNaive(int xc, int yc, int r) {
-    int y;
+    int y, xLimit = (int) round(r / sqrt(2));
     glBegin(GL_POINTS);
-    for (int x = 0; x <= r; ++x) {
+    for (int x = 0; x <= xLimit; ++x) {
         y = (int) round(sqrt(r * r - x * x));
         glVertex2i(xc + x, yc + y);
         glVertex2i(xc - x, yc + y);
         glVertex2i(xc + x, yc - y);
         glVertex2i(xc - x, yc - y);
+        glVertex2i(xc + y, yc + x);
+        glVertex2i(xc - y, yc + x);
+        glVertex2i(xc + y, yc - x);
+        glVertex2i(xc - y, yc - x);
     }
     glEnd();
 }
@@ -79,13 +98,66 @@ void drawCircleMidPoint(int xc, int yc, int r) {
     glEnd();
 }
 
+void drawEllipseAngular(int xc, int yc, int rx, int ry, float step = -1) {
+    int x, y;
+    float o = 0;
+    if (step == -1) step = 1.0f / max(rx, ry);
+    glBegin(GL_POINTS);
+    while (o <= M_PI / 2) {
+        x = (int) round(rx * cos(o)), y = (int) round(ry * sin(o));
+        glVertex2i(xc + x, yc + y);
+        glVertex2i(xc - x, yc + y);
+        glVertex2i(xc + x, yc - y);
+        glVertex2i(xc - x, yc - y);
+        o += step;
+    }
+    glEnd();
+}
+
+void drawEllipseMidPoint(int xc, int yc, int rx, int ry) {
+    int rx2 = rx * rx, ry2 = ry * ry;
+    int x = 0, y = ry, p = ry2 - rx2 * ry + rx2 / 4;
+    glBegin(GL_POINTS);
+    while (ry2 * x <= rx2 * y) {
+        glVertex2i(xc + x, yc + y);
+        glVertex2i(xc - x, yc + y);
+        glVertex2i(xc + x, yc - y);
+        glVertex2i(xc - x, yc - y);
+        ++x;
+        if (p >= 0) {
+            --y;
+            p -= 2 * rx2 * y;
+        }
+        p += ry2 + 2 * ry2 * x;
+    }
+    int xlim = x - 1;
+    x = rx, y = 0;
+    p = (int) round(ry2 * (rx + 1.0 / 2) * (rx + 1.0 / 2)) + rx2 - rx2 * ry2;
+    while (x >= xlim) {
+        glVertex2i(xc + x, yc + y);
+        glVertex2i(xc - x, yc + y);
+        glVertex2i(xc + x, yc - y);
+        glVertex2i(xc - x, yc - y);
+        ++y;
+        if (p >= 0) {
+            --x;
+            p -= 2 * ry2 * x;
+        }
+        p += rx2 + 2 * rx2 * y;
+    }
+    glEnd();
+}
+
 void display() {
     glClear(GL_COLOR_BUFFER_BIT);
-    drawLineDDA(-100, -100, 200, 150);
-    drawLineMidPoint(100, 100, -200, -150);
-    drawCircleNaive(0, 0, 225);
-    drawCircleAngular(0, 0, 200);
-    drawCircleMidPoint(45, 45, 200);
+//    drawLineDDA(-100, -100, 200, 150);
+//    drawLineBresenham(-200, -150, 100, 100);
+//    drawCircleNaive(100, 100, 140);
+//    drawCircleAngular(100, 100, 130);
+//    drawCircleMidPoint(100, 100, 120);
+    drawEllipseMidPoint(100, 100, 100, 75);
+    drawEllipseAngular(-100, -100, 100, 75);
+
     glutSwapBuffers();
 }
 
@@ -103,7 +175,7 @@ int main(int argc, char **argv) {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
     glutInitWindowSize(width, height);
-    glutInitWindowPosition(1200, 100);
+    glutInitWindowPosition(2200, 0);
     glutCreateWindow("CG");
     initOpenGL();
     glutDisplayFunc(display);
