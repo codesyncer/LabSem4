@@ -1,0 +1,293 @@
+1) First Fit Allocate
+2) Best Fit Allocate
+3) Worst Fit Allocate
+4) Deallocate
+5) Show Partitioning
+6) Quit
+Enter option: 1
+
+Enter size of process: 20
+Allocated 20 KiB at 0xc29010, offset 0
+
+1) First Fit Allocate
+2) Best Fit Allocate
+3) Worst Fit Allocate
+4) Deallocate
+5) Show Partitioning
+6) Quit
+Enter option: 1
+
+Enter size of process: 30
+Allocated 30 KiB at 0xc29024, offset 20
+
+1) First Fit Allocate
+2) Best Fit Allocate
+3) Worst Fit Allocate
+4) Deallocate
+5) Show Partitioning
+6) Quit
+Enter option: 5
+
+| 20/20 | 30/30 | 0/50 |
+
+
+1) First Fit Allocate
+2) Best Fit Allocate
+3) Worst Fit Allocate
+4) Deallocate
+5) Show Partitioning
+6) Quit
+Enter option: 1
+
+Enter size of process: 20
+Allocated 20 KiB at 0xc29042, offset 50
+
+1) First Fit Allocate
+2) Best Fit Allocate
+3) Worst Fit Allocate
+4) Deallocate
+5) Show Partitioning
+6) Quit
+Enter option: 5
+
+| 20/20 | 30/30 | 20/20 | 0/30 |
+
+
+1) First Fit Allocate
+2) Best Fit Allocate
+3) Worst Fit Allocate
+4) Deallocate
+5) Show Partitioning
+6) Quit
+Enter option: 4
+
+Enter offset of process: 20
+Deallocated!
+
+1) First Fit Allocate
+2) Best Fit Allocate
+3) Worst Fit Allocate
+4) Deallocate
+5) Show Partitioning
+6) Quit
+Enter option: 5
+
+| 20/20 | 0/30 | 20/20 | 0/30 |
+
+
+1) First Fit Allocate
+2) Best Fit Allocate
+3) Worst Fit Allocate
+4) Deallocate
+5) Show Partitioning
+6) Quit
+Enter option: 1
+
+Enter size of process: 70
+Unable to allocate
+
+1) First Fit Allocate
+2) Best Fit Allocate
+3) Worst Fit Allocate
+4) Deallocate
+5) Show Partitioning
+6) Quit
+Enter option: 1
+
+Enter size of process: 55
+Unable to allocate due to external fragmentation
+
+1) First Fit Allocate
+2) Best Fit Allocate
+3) Worst Fit Allocate
+4) Deallocate
+5) Show Partitioning
+6) Quit
+Enter option: 4
+
+Enter offset of process: 50
+Deallocated!
+
+1) First Fit Allocate
+2) Best Fit Allocate
+3) Worst Fit Allocate
+4) Deallocate
+5) Show Partitioning
+6) Quit
+Enter option: 5
+
+| 20/20 | 0/80 |
+
+
+1) First Fit Allocate
+2) Best Fit Allocate
+3) Worst Fit Allocate
+4) Deallocate
+5) Show Partitioning
+6) Quit
+Enter option: 1
+
+Enter size of process: 10
+Allocated 10 KiB at 0xc29024, offset 20
+
+1) First Fit Allocate
+2) Best Fit Allocate
+3) Worst Fit Allocate
+4) Deallocate
+5) Show Partitioning
+6) Quit
+Enter option: 1
+
+Enter size of process: 10
+Allocated 10 KiB at 0xc2902e, offset 30
+
+1) First Fit Allocate
+2) Best Fit Allocate
+3) Worst Fit Allocate
+4) Deallocate
+5) Show Partitioning
+6) Quit
+Enter option: 4
+
+Enter offset of process: 20
+Deallocated!
+
+1) First Fit Allocate
+2) Best Fit Allocate
+3) Worst Fit Allocate
+4) Deallocate
+5) Show Partitioning
+6) Quit
+Enter option: 5
+
+| 20/20 | 0/10 | 10/10 | 0/60 |
+
+
+1) First Fit Allocate
+2) Best Fit Allocate
+3) Worst Fit Allocate
+4) Deallocate
+5) Show Partitioning
+6) Quit
+Enter option: 2
+
+Enter size of process: 5
+Allocated 5 KiB at 0xc29024, offset 20
+
+1) First Fit Allocate
+2) Best Fit Allocate
+3) Worst Fit Allocate
+4) Deallocate
+5) Show Partitioning
+6) Quit
+Enter option: 5
+
+| 20/20 | 5/5 | 0/5 | 10/10 | 0/60 |
+
+
+1) First Fit Allocate
+2) Best Fit Allocate
+3) Worst Fit Allocate
+4) Deallocate
+5) Show Partitioning
+6) Quit
+Enter option: 4
+
+Enter offset of process: 20
+Deallocated!
+
+1) First Fit Allocate
+2) Best Fit Allocate
+3) Worst Fit Allocate
+4) Deallocate
+5) Show Partitioning
+6) Quit
+Enter option: 3
+
+Enter size of process: 5
+Allocated 5 KiB at 0xc29038, offset 40
+
+1) First Fit Allocate
+2) Best Fit Allocate
+3) Worst Fit Allocate
+4) Deallocate
+5) Show Partitioning
+6) Quit
+Enter option: 5
+
+| 20/20 | 0/10 | 10/10 | 5/5 | 0/55 |
+
+
+1) First Fit Allocate
+2) Best Fit Allocate
+3) Worst Fit Allocate
+4) Deallocate
+5) Show Partitioning
+6) Quit
+Enter option: 1
+
+Enter size of process: 5
+Allocated 5 KiB at 0xc29024, offset 20
+
+1) First Fit Allocate
+2) Best Fit Allocate
+3) Worst Fit Allocate
+4) Deallocate
+5) Show Partitioning
+6) Quit
+Enter option: 5
+
+| 20/20 | 5/5 | 0/5 | 10/10 | 5/5 | 0/55 |
+
+
+1) First Fit Allocate
+2) Best Fit Allocate
+3) Worst Fit Allocate
+4) Deallocate
+5) Show Partitioning
+6) Quit
+Enter option: 4
+
+Enter offset of process: 0
+Deallocated!
+
+1) First Fit Allocate
+2) Best Fit Allocate
+3) Worst Fit Allocate
+4) Deallocate
+5) Show Partitioning
+6) Quit
+Enter option: 5
+
+| 0/20 | 5/5 | 0/5 | 10/10 | 5/5 | 0/55 |
+
+
+1) First Fit Allocate
+2) Best Fit Allocate
+3) Worst Fit Allocate
+4) Deallocate
+5) Show Partitioning
+6) Quit
+Enter option: 2
+
+Enter size of process: 3
+Allocated 3 KiB at 0xc29029, offset 25
+
+1) First Fit Allocate
+2) Best Fit Allocate
+3) Worst Fit Allocate
+4) Deallocate
+5) Show Partitioning
+6) Quit
+Enter option: 5
+
+| 0/20 | 5/5 | 3/3 | 0/2 | 10/10 | 5/5 | 0/55 |
+
+
+1) First Fit Allocate
+2) Best Fit Allocate
+3) Worst Fit Allocate
+4) Deallocate
+5) Show Partitioning
+6) Quit
+Enter option: 6
