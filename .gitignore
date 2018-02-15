@@ -3,5 +3,10 @@
 */*/.idea
 */*/CMakeLists.txt
 */*/cmake-build-debug/
+*/*/bin
+*/*/obj
+*/*/*.cbp
+*/*/*.depend
+*/*/*.layout
 */*/*.iml
 */*/out
