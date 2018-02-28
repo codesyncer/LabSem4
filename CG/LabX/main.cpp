@@ -4,7 +4,8 @@
 
 #include <GL/glut.h>
 #include <algorithm>
-
+#include<math.h>
+#include <stdio.h>
 using namespace std;
 const int width = 500, height = 500;
 
@@ -23,18 +24,19 @@ void drawLineDDA(int x1, int y1, int x2, int y2) {
 }
 
 void drawLineBresenham(int x1, int y1, int x2, int y2) {
-    int dx = x2 - x1, dy = y2 - y1;
+    int dx = x2 - x1, dy = abs(y2 - y1);
     int p = 2 * dy + dx;
     int x = x1, y = y1;
+    int dec = 2*dx, inc = 2*dy;
     glBegin(GL_POINTS);
     while (x <= x2) {
         glVertex2i(x, y);
         ++x;
         if (p >= 0) {
-            ++y;
-            p -= 2 * dx;
+            --y;
+            p -= dec;
         }
-        p += 2 * dy;
+        p += inc;
     }
     glEnd();
 }
@@ -147,17 +149,36 @@ void drawEllipseMidPoint(int xc, int yc, int rx, int ry) {
     }
     glEnd();
 }
-
+int trans=0;
+void rectangeEffect(){
+    int v[][5]= {{-20,-20,0,0,1},{20,-20,0,0,1},{20,20,0,0,1},{-20,20,0,0,1}};
+    int color[]={1,0,0};
+    glTranslated(1,1,0);
+    //glRotated(1,0,0,1);
+    glBegin(GL_QUADS);
+    for(int i=0; i<4; ++i){
+        //glColor3iv(v[i]+2*sizeof(int));
+        //int *ptr=&v[i][3];
+        glColor3iv(color);
+        //printf("%d %d %d",v[i][2],v[i][3],v[i][4]);
+        glVertex2iv(v[i]);
+    }
+    glEnd();
+    //if (!trans)
+    //    glRotated(-1,0,0,1);
+    //trans=!trans;
+}
 void display() {
     glClear(GL_COLOR_BUFFER_BIT);
 //    drawLineDDA(-100, -100, 200, 150);
-//    drawLineBresenham(-200, -150, 100, 100);
+    //drawLineBresenham( -120, 80,0, 0);
+    //drawLineBresenham( -100, 80,0, 0);
 //    drawCircleNaive(100, 100, 140);
 //    drawCircleAngular(100, 100, 130);
 //    drawCircleMidPoint(100, 100, 120);
-    drawEllipseMidPoint(100, 100, 100, 75);
-    drawEllipseAngular(-100, -100, 100, 75);
-
+//    drawEllipseMidPoint(100, 100, 100, 75);
+//    drawEllipseAngular(-100, -100, 100, 75);
+    rectangeEffect();
     glutSwapBuffers();
 }
 
@@ -168,14 +189,13 @@ void reshape(int w, int h) {
 void initOpenGL() {
     glOrtho(-250, 250, -250, 250, -250, 250);
     glClearColor(0, 0, 0, 0);
-    glColor3f(0, 1, 0);
 }
 
 int main(int argc, char **argv) {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
     glutInitWindowSize(width, height);
-    glutInitWindowPosition(2200, 0);
+    glutInitWindowPosition(0, 0);
     glutCreateWindow("CG");
     initOpenGL();
     glutDisplayFunc(display);

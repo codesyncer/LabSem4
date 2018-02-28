@@ -27,16 +27,40 @@ int alloc(int size){
   int order= (int)ceil(log(size)/log(2)) - log(block_size);
   order= max(0, order);
   if (free_list[order]->empty())
-    if(alloc_order(order)==-1)
-      return -1;
+    return alloc_order(order);
   int offset= free_list[order]->front();
   free_list[order]->pop();
   return offset;
 }
-
-void dealloc(int offset){
-
+bool merge(int offset, int order){
+    queue<int> *q = free_list[order];
+    for(int j=0; j<q->size(); ++j){
+        if(offset == q->front()){
+            q->pop();
+            return true;
+        }
+        q->push(q->front());
+        q->pop();
+    }
+    return false;
 }
+void dealloc(int size, int offset){
+    int order= (int)ceil(log(size)/log(2)) - log(block_size);
+    int buddy_order= order= max(0, order);
+    size= pow(2, order)*block_size;
+    int buddy_offset= offset - size;
+    if(buddy_offset >= 0 && merge(buddy_offset, buddy_order)){
+            dealloc(2*size, buddy_offset);
+            return;
+    }
+    buddy_offset= offset + size;
+    if(buddy_offset < mem_size && merge(buddy_offset, buddy_order)){
+            dealloc(2*size, offset);
+            return;
+    }
+    free_list[order]->push(offset);
+}
+
 void init(){
   max_order= (int)(log(mem_size/block_size)/log(2));
   free_list= new queue<int>*[max_order+1];
@@ -46,8 +70,30 @@ void init(){
 }
 void deinit(){
   for(int i= 0; i<=max_order; ++i)
-    delete &free_list[i];
+    delete free_list[i];
   delete free_list;
 }
+void print(){
+    printf("\nFree Partitions");
+    for (int i= 0; i<= max_order; ++i){
+        int qsize= free_list[i]->size();
+        if (qsize)
+            printf("\n%dkb @ ", (int)pow(2,i)*block_size);
+        for(int j=0; j<qsize; ++j){
+            printf("%d ", free_list[i]->front());
+            free_list[i]->push(free_list[i]->front());
+            free_list[i]->pop();
+        }
+    }
+    printf("\n");
+}
 int main(){
+    init();
+    print();
+    int o2= alloc(500);
+    int o1= alloc(20);
+    print();
+    dealloc(20, o1);
+    print();
+    deinit();
 }
