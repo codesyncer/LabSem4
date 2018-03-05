@@ -4,8 +4,7 @@
 
 #include <GL/glut.h>
 #include <algorithm>
-#include<math.h>
-#include <stdio.h>
+
 using namespace std;
 const int width = 500, height = 500;
 
@@ -27,7 +26,7 @@ void drawLineBresenham(int x1, int y1, int x2, int y2) {
     int dx = x2 - x1, dy = abs(y2 - y1);
     int p = 2 * dy + dx;
     int x = x1, y = y1;
-    int dec = 2*dx, inc = 2*dy;
+    int dec = 2 * dx, inc = 2 * dy;
     glBegin(GL_POINTS);
     while (x <= x2) {
         glVertex2i(x, y);
@@ -80,6 +79,7 @@ void drawCircleAngular(int xc, int yc, int r, float step = -1) {
 
 void drawCircleMidPoint(int xc, int yc, int r) {
     int x = 0, y = r, p = 5 / 4 - r;
+    int inc = 1 + 2 * x, dec = 2 * y;
     glBegin(GL_POINTS);
     while (x <= y) {
         glVertex2i(xc + x, yc + y);
@@ -92,10 +92,12 @@ void drawCircleMidPoint(int xc, int yc, int r) {
         glVertex2i(xc - y, yc - x);
         if (p >= 0) {
             --y;
-            p -= 2 * y;
+            dec -= 2;
+            p -= dec;
         }
         ++x;
-        p += 1 + 2 * x;
+        inc += 2;
+        p += inc;
     }
     glEnd();
 }
@@ -119,66 +121,93 @@ void drawEllipseAngular(int xc, int yc, int rx, int ry, float step = -1) {
 void drawEllipseMidPoint(int xc, int yc, int rx, int ry) {
     int rx2 = rx * rx, ry2 = ry * ry;
     int x = 0, y = ry, p = ry2 - rx2 * ry + rx2 / 4;
+    int inc = ry2 + 2 * ry2 * x, dec = 2 * rx2 * y, lhs = ry2 * x, rhs = rx2 * y;
     glBegin(GL_POINTS);
-    while (ry2 * x <= rx2 * y) {
+    while (lhs <= rhs) {
         glVertex2i(xc + x, yc + y);
         glVertex2i(xc - x, yc + y);
         glVertex2i(xc + x, yc - y);
         glVertex2i(xc - x, yc - y);
         ++x;
+        inc += ry2 + ry2;
+        lhs += ry2;
         if (p >= 0) {
             --y;
-            p -= 2 * rx2 * y;
+            dec -= rx2 + rx2;
+            rhs -= rx2;
+            p -= dec;
         }
-        p += ry2 + 2 * ry2 * x;
+        p += inc;
     }
-    int xlim = x - 1;
+    int xLimit = x - 1;
     x = rx, y = 0;
-    p = (int) round(ry2 * (rx + 1.0 / 2) * (rx + 1.0 / 2)) + rx2 - rx2 * ry2;
-    while (x >= xlim) {
+    inc = rx2 + 2 * rx2 * y, dec = 2 * ry2 * x;
+    p = (int) round(ry2 * (rx - 1.0 / 2) * (rx - 1.0 / 2)) + rx2 - rx2 * ry2;
+    while (x > xLimit) {
         glVertex2i(xc + x, yc + y);
         glVertex2i(xc - x, yc + y);
         glVertex2i(xc + x, yc - y);
         glVertex2i(xc - x, yc - y);
         ++y;
+        inc += rx2 + rx2;
         if (p >= 0) {
             --x;
-            p -= 2 * ry2 * x;
+            dec -= ry2 + ry2;
+            p -= dec;
         }
-        p += rx2 + 2 * rx2 * y;
+        p += inc;
     }
     glEnd();
 }
-int trans=0;
-void rectangeEffect(){
-    int v[][5]= {{-20,-20,0,0,1},{20,-20,0,0,1},{20,20,0,0,1},{-20,20,0,0,1}};
-    int color[]={1,0,0};
-    glTranslated(1,1,0);
-    //glRotated(1,0,0,1);
-    glBegin(GL_QUADS);
-    for(int i=0; i<4; ++i){
-        //glColor3iv(v[i]+2*sizeof(int));
-        //int *ptr=&v[i][3];
-        glColor3iv(color);
-        //printf("%d %d %d",v[i][2],v[i][3],v[i][4]);
-        glVertex2iv(v[i]);
+
+struct Vertex {
+    GLint x, y;
+    GLubyte r, g, b;
+
+    Vertex(GLint x, GLint y, GLubyte r = 0, GLubyte g = 0, GLubyte b = 0) {
+        this->x = x;
+        this->y = y;
+        this->r = r;
+        this->g = g;
+        this->b = b;
     }
-    glEnd();
-    //if (!trans)
-    //    glRotated(-1,0,0,1);
-    //trans=!trans;
+
+    Vertex() = default;
+
+    void set(GLint x, GLint y, GLubyte r = 0, GLubyte g = 0, GLubyte b = 0) {
+        this->x = x;
+        this->y = y;
+        this->r = r;
+        this->g = g;
+        this->b = b;
+    }
+};
+
+
+Vertex *vertices = nullptr;
+int i = 1;
+
+void rectangleEffect() {
+    glRotated(-i + 1, 0, 0, 1);
+    glTranslatef(1, 1, 0);
+    glRotated(i, 0, 0, 1);
+    glVertexPointer(2, GL_INT, sizeof(Vertex), vertices);
+    glColorPointer(3, GL_UNSIGNED_BYTE, sizeof(Vertex), &vertices[0].r);
+    glDrawArrays(GL_QUADS, 0, 4);
+    i = (i + 1) % 360;
 }
+
 void display() {
     glClear(GL_COLOR_BUFFER_BIT);
 //    drawLineDDA(-100, -100, 200, 150);
-    //drawLineBresenham( -120, 80,0, 0);
-    //drawLineBresenham( -100, 80,0, 0);
+//    drawLineBresenham(-120, 80, 0, 0);
+//    drawLineBresenham(-100, 80, 0, 0);
 //    drawCircleNaive(100, 100, 140);
 //    drawCircleAngular(100, 100, 130);
-//    drawCircleMidPoint(100, 100, 120);
-//    drawEllipseMidPoint(100, 100, 100, 75);
+    drawCircleMidPoint(100, 100, 120);
 //    drawEllipseAngular(-100, -100, 100, 75);
-    rectangeEffect();
+    drawEllipseMidPoint(100, 100, 100, 75);
+//    rectangleEffect();
     glutSwapBuffers();
 }
 
@@ -189,6 +218,19 @@ void reshape(int w, int h) {
 void initOpenGL() {
     glOrtho(-250, 250, -250, 250, -250, 250);
     glClearColor(0, 0, 0, 0);
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_COLOR_ARRAY);
+    vertices = new Vertex[4];
+    vertices[0].set(-20, -20, 255, 0, 0);
+    vertices[1].set(20, -20, 0, 255, 0);
+    vertices[2].set(20, 20, 0, 0, 255);
+    vertices[3].set(-20, 20, 255, 255, 255);
+}
+
+void deInitOpenGl() {
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_COLOR_ARRAY);
+    delete vertices;
 }
 
 int main(int argc, char **argv) {
@@ -202,5 +244,6 @@ int main(int argc, char **argv) {
     glutIdleFunc(display);
     glutReshapeFunc(reshape);
     glutMainLoop();
+    deInitOpenGl();
     return 0;
 }
