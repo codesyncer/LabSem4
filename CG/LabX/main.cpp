@@ -1,10 +1,9 @@
 #ifdef _WIN32
 #include <windows.h>
 #endif
-
+#define M_PI 3.14159
 #include <GL/glut.h>
 #include <algorithm>
-
 using namespace std;
 const int width = 500, height = 500;
 
@@ -185,6 +184,7 @@ struct Vertex {
 
 
 Vertex *vertices = nullptr;
+int polyVertices[][2] = {{-20,-20}, {20, -20}, {40, 10}, {0, 30}, {-30, 20}};
 int i = 1;
 
 void rectangleEffect() {
@@ -197,17 +197,53 @@ void rectangleEffect() {
     i = (i + 1) % 360;
 }
 
+void fillPoly(int n, int v[][2]){
+    struct EdgeBucket{
+        int yMax, yMin, x, sign, dx, dy, sum;
+    };
+    struct Edge{
+        int lx, ly, rx, ry;
+    };
+    EdgeBucket *edgeBuckets = new EdgeBucket[n];
+    Edge *edges = new Edge[n];
+    int m = 0;
+    for (int i =0; i<n;++i){
+        int i1 = i; int i2 = (i+1)%n;
+        if(v[i1][1] != v[i2][1]){
+            edgeBuckets[m].yMax = max(v[i1][1], v[i2][1]);
+            edgeBuckets[m].yMin = min(v[i1][1], v[i2][1]);
+            edgeBuckets[m].x = v[i1][1] < v[i2][1] ? v[i1][0] : v[i2][0];
+            edgeBuckets[m].sign = (v[i2][1] - v[i1][1]) * (v[i2][0] - v[i1][0]) < 0 ? -1 : 1;
+            edgeBuckets[m].dy = abs(v[i1][1] - v[i2][1]);
+            edgeBuckets[m].dx = abs(v[i1][0] - v[i2][0]);
+            edgeBuckets[m].sum = 0;
+            edges[m].lx = v[i1][0] < v[i2][0] ? v[i1][0] : v[i2][0];
+            edges[m].ly = v[i1][0] < v[i2][0] ? v[i1][1] : v[i2][1];
+            edges[m].rx = v[i1][0] > v[i2][0] ? v[i1][0] : v[i2][0];
+            edges[m].ry = v[i1][0] > v[i2][0] ? v[i1][1] : v[i2][1];
+            m++;
+        }
+    }
+    sort(edges, edges+m, [](Edge &e1, Edge &e2){
+         return min(e1.ly, e1.ry) < min(e2.ly, e2.ry);
+        });
+
+    delete edgeBuckets;
+    delete edges;
+}
 void display() {
     glClear(GL_COLOR_BUFFER_BIT);
-//    drawLineDDA(-100, -100, 200, 150);
-//    drawLineBresenham(-120, 80, 0, 0);
-//    drawLineBresenham(-100, 80, 0, 0);
-//    drawCircleNaive(100, 100, 140);
-//    drawCircleAngular(100, 100, 130);
+    glColor3f(0,1,0);
+    //drawLineDDA(-100, -100, 200, 150);
+    //drawLineBresenham(-120, 80, 0, 0);
+    //drawLineBresenham(-100, 80, 0, 0);
+    //drawCircleNaive(100, 100, 140);
+    //drawCircleAngular(100, 100, 130);
     drawCircleMidPoint(100, 100, 120);
-//    drawEllipseAngular(-100, -100, 100, 75);
+    //drawEllipseAngular(-100, -100, 100, 75);
     drawEllipseMidPoint(100, 100, 100, 75);
-//    rectangleEffect();
+    //rectangleEffect();
+    fillPoly(6, polyVertices);
     glutSwapBuffers();
 }
 
