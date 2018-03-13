@@ -2,8 +2,10 @@
 #include <windows.h>
 #endif
 #define M_PI 3.14159
+
 #include <GL/glut.h>
 #include <algorithm>
+
 using namespace std;
 const int width = 500, height = 500;
 
@@ -184,7 +186,11 @@ struct Vertex {
 
 
 Vertex *vertices = nullptr;
-int polyVertices[][2] = {{-20,-20}, {20, -20}, {40, 10}, {0, 30}, {-30, 20}};
+int polyVertices[][2] = {{-200, -200},
+                         {200,  -200},
+                         {200,  200},
+                         {0,    0},
+                         {-200, 200}};
 int i = 1;
 
 void rectangleEffect() {
@@ -197,53 +203,78 @@ void rectangleEffect() {
     i = (i + 1) % 360;
 }
 
-void fillPoly(int n, int v[][2]){
-    struct EdgeBucket{
-        int yMax, yMin, x, sign, dx, dy, sum;
+void fillPoly(int n, int v[][2]) {
+    struct EdgeBucket {
+        int yMax, yMin, sign, dx, dy, rem;
+        float x;
     };
-    struct Edge{
-        int lx, ly, rx, ry;
-    };
-    EdgeBucket *edgeBuckets = new EdgeBucket[n];
-    Edge *edges = new Edge[n];
+    EdgeBucket edgeTable[n];
     int m = 0;
-    for (int i =0; i<n;++i){
-        int i1 = i; int i2 = (i+1)%n;
-        if(v[i1][1] != v[i2][1]){
-            edgeBuckets[m].yMax = max(v[i1][1], v[i2][1]);
-            edgeBuckets[m].yMin = min(v[i1][1], v[i2][1]);
-            edgeBuckets[m].x = v[i1][1] < v[i2][1] ? v[i1][0] : v[i2][0];
-            edgeBuckets[m].sign = (v[i2][1] - v[i1][1]) * (v[i2][0] - v[i1][0]) < 0 ? -1 : 1;
-            edgeBuckets[m].dy = abs(v[i1][1] - v[i2][1]);
-            edgeBuckets[m].dx = abs(v[i1][0] - v[i2][0]);
-            edgeBuckets[m].sum = 0;
-            edges[m].lx = v[i1][0] < v[i2][0] ? v[i1][0] : v[i2][0];
-            edges[m].ly = v[i1][0] < v[i2][0] ? v[i1][1] : v[i2][1];
-            edges[m].rx = v[i1][0] > v[i2][0] ? v[i1][0] : v[i2][0];
-            edges[m].ry = v[i1][0] > v[i2][0] ? v[i1][1] : v[i2][1];
+    for (int i = 0; i < n; ++i) {
+        int i1 = i;
+        int i2 = (i + 1) % n;
+        if (v[i1][1] != v[i2][1]) {
+            edgeTable[m].yMax = max(v[i1][1], v[i2][1]);
+            edgeTable[m].yMin = min(v[i1][1], v[i2][1]);
+            edgeTable[m].rem = edgeTable[m].yMax - edgeTable[m].yMin;
+            edgeTable[m].yMax = max(v[i1][1], v[i2][1]);
+            edgeTable[m].yMin = min(v[i1][1], v[i2][1]);
+            edgeTable[m].x = v[i1][1] < v[i2][1] ? v[i1][0] : v[i2][0];
+            if (edgeTable[m].yMax == v[i2][1])
+                edgeTable[m].sign = (v[i2][0] - v[i1][0]) < 0 ? -1 : 1;
+            else
+                edgeTable[m].sign = (v[i2][0] - v[i1][0]) < 0 ? 1 : -1;
+            edgeTable[m].dy = abs(v[i1][1] - v[i2][1]);
+            edgeTable[m].dx = abs(v[i1][0] - v[i2][0]);
             m++;
         }
     }
-    sort(edges, edges+m, [](Edge &e1, Edge &e2){
-         return min(e1.ly, e1.ry) < min(e2.ly, e2.ry);
+    sort(edgeTable, edgeTable + m, [](EdgeBucket &e1, EdgeBucket &e2) {
+        return e1.yMin < e2.yMin;
+    });
+    int yMin = edgeTable[0].yMin;
+    int activeList[2 * n];
+    for (int y = yMin; true; ++y) {
+        int j = 0;
+        for (int i = 0; i < n; ++i)
+            if (edgeTable[i].yMin <= y && edgeTable[i].rem >= 0) {
+                activeList[j++] = i;
+                if (edgeTable[i].yMin == y || edgeTable[i].yMax == y)
+                    activeList[j++] = i;
+            }
+        if (j == 0)
+            break;
+        sort(activeList, activeList + j, [&edgeTable](int &e1, int &e2) {
+            return edgeTable[e1].x < edgeTable[e1].x;
         });
-
-    delete edgeBuckets;
-    delete edges;
+        for (int k = 0; k < j; k += 2) {
+            int e1 = activeList[k];
+            int e2 = activeList[k + 1];
+            glBegin(GL_LINES);
+            glVertex2i((int) round(edgeTable[e1].x), y);
+            glVertex2i((int) round(edgeTable[e2].x), y);
+            glEnd();
+            edgeTable[e1].x += edgeTable[e1].sign * (float) edgeTable[e1].dx / edgeTable[e1].dy;
+            edgeTable[e2].x += edgeTable[e2].sign * (float) edgeTable[e2].dx / edgeTable[e2].dy;
+            edgeTable[e1].rem--;
+            edgeTable[e2].rem--;
+        }
+    }
 }
+
 void display() {
     glClear(GL_COLOR_BUFFER_BIT);
-    glColor3f(0,1,0);
+    glColor3f(0, 1, 0);
     //drawLineDDA(-100, -100, 200, 150);
     //drawLineBresenham(-120, 80, 0, 0);
     //drawLineBresenham(-100, 80, 0, 0);
     //drawCircleNaive(100, 100, 140);
     //drawCircleAngular(100, 100, 130);
-    drawCircleMidPoint(100, 100, 120);
+//    drawCircleMidPoint(100, 100, 120);
     //drawEllipseAngular(-100, -100, 100, 75);
-    drawEllipseMidPoint(100, 100, 100, 75);
+//    drawEllipseMidPoint(100, 100, 100, 75);
     //rectangleEffect();
-    fillPoly(6, polyVertices);
+    fillPoly(sizeof(polyVertices) / sizeof(polyVertices[0]), polyVertices);
     glutSwapBuffers();
 }
 
@@ -252,7 +283,7 @@ void reshape(int w, int h) {
 }
 
 void initOpenGL() {
-    glOrtho(-250, 250, -250, 250, -250, 250);
+    glOrtho(-500, 500, -500, 500, -500, 500);
     glClearColor(0, 0, 0, 0);
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_COLOR_ARRAY);
