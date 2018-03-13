@@ -1,0 +1,20 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/srinag/Projects/LabSem4/CCN/Lab6/Server/main.cpp
+cstdio
+-
+unistd.h
+-
+cstring
+-
+sys/socket.h
+-
+netinet/in.h
+-
+
