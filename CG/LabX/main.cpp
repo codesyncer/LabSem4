@@ -5,7 +5,7 @@
 
 #include <GL/glut.h>
 #include <algorithm>
-
+#include <cstdio>
 using namespace std;
 const int width = 500, height = 500;
 
@@ -150,12 +150,12 @@ void drawEllipseMidPoint(int xc, int yc, int rx, int ry) {
         glVertex2i(xc + x, yc - y);
         glVertex2i(xc - x, yc - y);
         ++y;
-        inc += rx2 + rx2;
         if (p >= 0) {
             --x;
             dec -= ry2 + ry2;
             p -= dec;
         }
+        inc += rx2 + rx2;
         p += inc;
     }
     glEnd();
@@ -186,11 +186,12 @@ struct Vertex {
 
 
 Vertex *vertices = nullptr;
-int polyVertices[][2] = {{-200, -200},
-                         {200,  -200},
-                         {200,  200},
+int polyVertices[][2] = {{-100, -100},
+                         {100,  -150},
+                         {70,  100},
                          {0,    0},
-                         {-200, 200}};
+                         {-70, 100},
+                         {-30, 80}};
 int i = 1;
 
 void rectangleEffect() {
@@ -217,13 +218,11 @@ void fillPoly(int n, int v[][2]) {
             edgeTable[m].yMax = max(v[i1][1], v[i2][1]);
             edgeTable[m].yMin = min(v[i1][1], v[i2][1]);
             edgeTable[m].rem = edgeTable[m].yMax - edgeTable[m].yMin;
-            edgeTable[m].yMax = max(v[i1][1], v[i2][1]);
-            edgeTable[m].yMin = min(v[i1][1], v[i2][1]);
             edgeTable[m].x = v[i1][1] < v[i2][1] ? v[i1][0] : v[i2][0];
             if (edgeTable[m].yMax == v[i2][1])
                 edgeTable[m].sign = (v[i2][0] - v[i1][0]) < 0 ? -1 : 1;
             else
-                edgeTable[m].sign = (v[i2][0] - v[i1][0]) < 0 ? 1 : -1;
+                edgeTable[m].sign = (v[i2][0] - v[i1][0]) <= 0 ? 1 : -1;
             edgeTable[m].dy = abs(v[i1][1] - v[i2][1]);
             edgeTable[m].dx = abs(v[i1][0] - v[i2][0]);
             m++;
@@ -232,20 +231,16 @@ void fillPoly(int n, int v[][2]) {
     sort(edgeTable, edgeTable + m, [](EdgeBucket &e1, EdgeBucket &e2) {
         return e1.yMin < e2.yMin;
     });
-    int yMin = edgeTable[0].yMin;
-    int activeList[2 * n];
-    for (int y = yMin; true; ++y) {
+    int activeList[n];
+    for (int y = edgeTable[0].yMin; true; ++y) {
         int j = 0;
-        for (int i = 0; i < n; ++i)
-            if (edgeTable[i].yMin <= y && edgeTable[i].rem >= 0) {
+        for (int i = 0; i < m; ++i)
+            if (edgeTable[i].yMin <= y && edgeTable[i].rem > 0)
                 activeList[j++] = i;
-                if (edgeTable[i].yMin == y || edgeTable[i].yMax == y)
-                    activeList[j++] = i;
-            }
         if (j == 0)
             break;
         sort(activeList, activeList + j, [&edgeTable](int &e1, int &e2) {
-            return edgeTable[e1].x < edgeTable[e1].x;
+            return edgeTable[e1].x < edgeTable[e2].x;
         });
         for (int k = 0; k < j; k += 2) {
             int e1 = activeList[k];
@@ -270,10 +265,11 @@ void display() {
     //drawLineBresenham(-100, 80, 0, 0);
     //drawCircleNaive(100, 100, 140);
     //drawCircleAngular(100, 100, 130);
-//    drawCircleMidPoint(100, 100, 120);
+//    drawCircleMidPoint(100, 100, 50);
+//    drawCircleMidPoint(-100, -100, 50);
     //drawEllipseAngular(-100, -100, 100, 75);
-//    drawEllipseMidPoint(100, 100, 100, 75);
-    //rectangleEffect();
+//    drawEllipseMidPoint(0, 0, 200, 100);
+//    rectangleEffect();
     fillPoly(sizeof(polyVertices) / sizeof(polyVertices[0]), polyVertices);
     glutSwapBuffers();
 }
@@ -283,7 +279,7 @@ void reshape(int w, int h) {
 }
 
 void initOpenGL() {
-    glOrtho(-500, 500, -500, 500, -500, 500);
+    glOrtho(-250, 250, -250, 250, -250, 250);
     glClearColor(0, 0, 0, 0);
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_COLOR_ARRAY);
