@@ -5,7 +5,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#define SERVER_PORT 8091
+#define SERVER_PORT 8080
 
 int main(int argc, char **argv) {
     char fileName[80], recLine[80];
@@ -33,5 +33,6 @@ int main(int argc, char **argv) {
         fputs(recLine, stdout);
     }
     close(socketFd);
+    printf("\n");
     return 0;
 }
