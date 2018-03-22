@@ -29,8 +29,9 @@ int main(int argc, char **argv) {
     scanf("%s", fileName);
     write(socketFd, fileName, sizeof(fileName));
     printf("Data from server\n");
-    while (read(socketFd, recLine, sizeof(recLine)) != 0)
+    while (read(socketFd, recLine, sizeof(recLine)) != 0) {
         fputs(recLine, stdout);
+    }
     close(socketFd);
     printf("\n");
     return 0;

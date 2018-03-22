@@ -22,7 +22,7 @@ int main(int argc, char **argv) {
     bzero(&serverAddress, sizeof(serverAddress));
     serverAddress.sin_family = AF_INET;
     serverAddress.sin_port = htons(SERVER_PORT);
-    listenFd = socket(AF_INET, SOCK_STREAM, 0);
+    listenFd = socket(AF_INET, SOCK_DGRAM, 0);
     if (listenFd == -1) {
         perror("Could not create socket");
         return 0;

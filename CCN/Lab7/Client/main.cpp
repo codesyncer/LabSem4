@@ -8,9 +8,12 @@
 #define SERVER_PORT 8080
 
 int main(int argc, char **argv) {
+    // char hostname[50];
+    // printf("%d",gethostname(hostname, sizeof(hostname)));
+    printf("%s\n", hostname);
     char fileName[80], recLine[80];
     sockaddr_in serverAddress = sockaddr_in();
-    int socketFd = socket(AF_INET, SOCK_STREAM, 0);
+    int socketFd = socket(AF_INET, SOCK_DGRAM, 0);
     if (socketFd == -1) {
         perror("Could not open socket");
         return 0;
@@ -29,8 +32,9 @@ int main(int argc, char **argv) {
     scanf("%s", fileName);
     write(socketFd, fileName, sizeof(fileName));
     printf("Data from server\n");
-    while (read(socketFd, recLine, sizeof(recLine)) != 0)
+    while (read(socketFd, recLine, sizeof(recLine)) != 0) {
         fputs(recLine, stdout);
+    }
     close(socketFd);
     printf("\n");
     return 0;
