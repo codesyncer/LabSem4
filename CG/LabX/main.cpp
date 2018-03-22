@@ -187,7 +187,18 @@ struct Vertex {
 
 
 Vertex *vertices = nullptr;
-
+int polyVertices[][2] = {{-100, -100},
+                         {100,  -150},
+                         {70,  100},
+                         {0,    0},
+                         {-150, 100},
+                         {-80, 20}};
+//int polyVertices[][2] = {{0, 0},
+//                         {100, 100},
+//                         {100, 0}};
+//int polyVertices1[][2] = {{0, 0},
+//                         {100, 100},
+//                         {100, 0}};
 int i = 1;
 
 void rectangleEffect() {
@@ -253,25 +264,47 @@ void fillPoly(int n, int v[][2]) {
     }
 }
 
-int polyVertices[][2] = {{-100, -100},
-                         {100,  -150},
-                         {70,   100},
-                         {0,    0},
-                         {-150, 120},
-                         {-70,  30}};
-
+void customRotate(int n, int v[][2], double theta, int x=0, int y=0){
+    for(int i=0; i<n; ++i){
+        v[i][0]-=x;
+        v[i][1]-=y;
+    }
+    theta*=M_PI/180;
+    float s = sin(theta), c = cos(theta);
+    float rotateMat[2][2] = {{c, -s},{s, c}};
+    int r2 = 2, c2 = 1, r1 = 2;
+    float result[r1][c2];
+    for(int a=0; a<n; ++a){
+        for(int i=0;i<r1;++i)
+            for(int j=0; j<c2; ++j){
+                result[i][j] = 0;
+                for(int k=0;k<r2; ++k)
+                    result[i][j] += rotateMat[i][k]*v[a][k];
+            }
+        v[a][0]=round(result[0][0]);
+        v[a][1]=round(result[1][0]);
+    }
+    for(int i=0; i<n; ++i){
+        v[i][0]+=x;
+        v[i][1]+=y;
+    }
+}
+int rot = 0;
 void display() {
     glClear(GL_COLOR_BUFFER_BIT);
+    //drawLineDDA(-100, -100, 200, 150);
+    //drawLineBresenham(-120, 80, 0, 0);
+    //drawLineBresenham(-100, 80, 0, 0);
+    //drawCircleNaive(100, 100, 140);
+    //drawCircleAngular(100, 100, 130);
+    //drawCircleMidPoint(100, 100, 50);
+    //drawCircleMidPoint(-100, -100, 50);
+    //drawEllipseAngular(-100, -100, 100, 75);
+    //drawEllipseMidPoint(0, 0, 200, 100);
+    //rectangleEffect();
+    //glColor3f(0, 0, 1);
+    //fillPoly(sizeof(polyVertices1) / sizeof(polyVertices1[0]), polyVertices1);
     glColor3f(0, 1, 0);
-//    drawLineDDA(-100, -100, 200, 150);
-//    drawLineBresenham(-100, 80, 0, 0);
-//    drawCircleNaive(100, 100, 140);
-//    drawCircleAngular(100, 100, 130);
-//    drawCircleMidPoint(100, 100, 50);
-//    drawCircleMidPoint(-100, -100, 50);
-//    drawEllipseAngular(-100, -100, 100, 75);
-//    drawEllipseMidPoint(0, 0, 200, 100);
-//    rectangleEffect();
     fillPoly(sizeof(polyVertices) / sizeof(polyVertices[0]), polyVertices);
     glutSwapBuffers();
 }
@@ -290,6 +323,8 @@ void initOpenGL() {
     vertices[1].set(20, -20, 0, 255, 0);
     vertices[2].set(20, 20, 0, 0, 255);
     vertices[3].set(-20, 20, 255, 255, 255);
+    //customRotate(sizeof(polyVertices) / sizeof(polyVertices[0]), polyVertices, -90);
+    //customRotate(sizeof(polyVertices) / sizeof(polyVertices[0]), polyVertices, -45, polyVertices[1][0], polyVertices[1][1]);
 }
 
 void deInitOpenGl() {
