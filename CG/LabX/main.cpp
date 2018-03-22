@@ -6,6 +6,7 @@
 #include <GL/glut.h>
 #include <algorithm>
 #include <cstdio>
+
 using namespace std;
 const int width = 500, height = 500;
 
@@ -186,12 +187,7 @@ struct Vertex {
 
 
 Vertex *vertices = nullptr;
-int polyVertices[][2] = {{-100, -100},
-                         {100,  -150},
-                         {70,  100},
-                         {0,    0},
-                         {-70, 100},
-                         {-30, 80}};
+
 int i = 1;
 
 void rectangleEffect() {
@@ -257,17 +253,23 @@ void fillPoly(int n, int v[][2]) {
     }
 }
 
+int polyVertices[][2] = {{-100, -100},
+                         {100,  -150},
+                         {70,   100},
+                         {0,    0},
+                         {-150, 120},
+                         {-70,  30}};
+
 void display() {
     glClear(GL_COLOR_BUFFER_BIT);
     glColor3f(0, 1, 0);
-    //drawLineDDA(-100, -100, 200, 150);
-    //drawLineBresenham(-120, 80, 0, 0);
-    //drawLineBresenham(-100, 80, 0, 0);
-    //drawCircleNaive(100, 100, 140);
-    //drawCircleAngular(100, 100, 130);
+//    drawLineDDA(-100, -100, 200, 150);
+//    drawLineBresenham(-100, 80, 0, 0);
+//    drawCircleNaive(100, 100, 140);
+//    drawCircleAngular(100, 100, 130);
 //    drawCircleMidPoint(100, 100, 50);
 //    drawCircleMidPoint(-100, -100, 50);
-    //drawEllipseAngular(-100, -100, 100, 75);
+//    drawEllipseAngular(-100, -100, 100, 75);
 //    drawEllipseMidPoint(0, 0, 200, 100);
 //    rectangleEffect();
     fillPoly(sizeof(polyVertices) / sizeof(polyVertices[0]), polyVertices);
