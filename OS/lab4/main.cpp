@@ -24,7 +24,7 @@ int alloc_order(int order){
   }
 }
 int alloc(int size){
-  int order= (int)ceil(log(size)/log(2)) - log(block_size);
+  int order= (int)ceil(log(size)/log(2)) - log(block_size)/log(2);
   order= max(0, order);
   if (free_list[order]->empty())
     return alloc_order(order);
@@ -45,7 +45,7 @@ bool merge(int offset, int order){
     return false;
 }
 void dealloc(int size, int offset){
-    int order= (int)ceil(log(size)/log(2)) - log(block_size);
+    int order= (int)ceil(log(size)/log(2)) - log(block_size)/log(2);
     int buddy_order= order= max(0, order);
     size= pow(2, order)*block_size;
     int buddy_offset= offset - size;
@@ -90,10 +90,7 @@ void print(){
 int main(){
     init();
     print();
-    int o2= alloc(500);
-    int o1= alloc(20);
-    print();
-    dealloc(20, o1);
+    int o2= alloc(1);
     print();
     deinit();
 }
