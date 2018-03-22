@@ -17,6 +17,8 @@ class DisjointSets:
     def union(self, s1, s2):
         s1 = self.find_set(s1)
         s2 = self.find_set(s2)
+        if s1 == s2:
+            return False
         if s1.rank == s2.rank:
             s2.parent = s1
             s1.rank += 1
@@ -24,6 +26,7 @@ class DisjointSets:
             s1.parent = s2
         else:
             s2.parent = s1
+        return True
 
     def find_set(self, s):
         if s.parent == s:
