@@ -5,7 +5,7 @@ struct Record {
         int compTime, turnTime, waitTime;
 };
 void simulate(int tq, int n, struct Record records[]){
-        // sort
+        // sort by arrivalTime
         int conSwitch = 0, processorTime=0, arriveCounter=0;
         struct Queue q;
         init(&q);
