@@ -194,11 +194,11 @@ int polyVertices[][2] = {{-100, -100},
                          {-150, 100},
                          {-80, 20}};
 //int polyVertices[][2] = {{0, 0},
-//                         {100, 100},
-//                         {100, 0}};
-//int polyVertices1[][2] = {{0, 0},
-//                         {100, 100},
-//                         {100, 0}};
+//                        {100, 100},
+//                        {100, 0}};
+//int polyVertices[][2] = {{0, 0},
+//                    {100, 100},
+//                    {100, 0}};
 int i = 1;
 
 void rectangleEffect() {
@@ -263,7 +263,45 @@ void fillPoly(int n, int v[][2]) {
         }
     }
 }
-
+void customTranslate(int n, int v[][2], int x, int y){
+    int rotateMat[3][3] = {{1,0,x},{0,1,y},{0,0,1}};
+    int r2 = 2, c2 = 1, r1 = 3;
+    int result[r1][c2];
+    for(int a=0; a<n; ++a){
+        for(int i=0;i<r1;++i)
+            for(int j=0; j<c2; ++j){
+                result[i][j] = 0;
+                for(int k=0;k<r2; ++k)
+                    result[i][j] += rotateMat[i][k]*v[a][k];
+                result[i][j] += rotateMat[i][r2]*1;
+            }
+        v[a][0]=round(result[0][0]);
+        v[a][1]=round(result[1][0]);
+    }
+}
+void customScale(int n, int v[][2], float s, int x=0, int y=0){
+    for(int i=0; i<n; ++i){
+        v[i][0]-=x;
+        v[i][1]-=y;
+    }
+    float rotateMat[2][2] = {{s,0},{0,s}};
+    int r2 = 2, c2 = 1, r1 = 2;
+    float result[r1][c2];
+    for(int a=0; a<n; ++a){
+        for(int i=0;i<r1;++i)
+            for(int j=0; j<c2; ++j){
+                result[i][j] = 0;
+                for(int k=0;k<r2; ++k)
+                    result[i][j] += rotateMat[i][k]*v[a][k];
+            }
+        v[a][0]=round(result[0][0]);
+        v[a][1]=round(result[1][0]);
+    }
+    for(int i=0; i<n; ++i){
+        v[i][0]+=x;
+        v[i][1]+=y;
+    }
+}
 void customRotate(int n, int v[][2], double theta, int x=0, int y=0){
     for(int i=0; i<n; ++i){
         v[i][0]-=x;
@@ -289,6 +327,27 @@ void customRotate(int n, int v[][2], double theta, int x=0, int y=0){
         v[i][1]+=y;
     }
 }
+void myCube(int a){
+    int polyVertices[][2] = {{-a/2,-a/2},{a/2,-a/2},{a/2,a/2},{-a/2,a/2}};
+    int tmp[4][2];
+    memcpy(tmp, polyVertices, sizeof(polyVertices));
+    glTranslated(0,0,-a/2);
+    glColor3ub(255,255,255);
+    fillPoly(sizeof(tmp) / sizeof(tmp[0]), tmp);
+    glTranslated(0,0,a);
+    glColor3ub(255,0,0);
+    fillPoly(sizeof(tmp) / sizeof(tmp[0]), tmp);
+    glTranslated(0,0,-a/2);
+    glRotated(90,0,1,0);
+    glTranslated(0,0,-a/2);
+    glColor3ub(0,255,0);
+    fillPoly(sizeof(tmp) / sizeof(tmp[0]), tmp);
+    glTranslated(0,0,a);
+    glColor3ub(0,0,255);
+    fillPoly(sizeof(tmp) / sizeof(tmp[0]), tmp);
+    glTranslated(0,0,-a/2);
+    glRotated(-90,0,1,0);
+}
 int rot = 0;
 void display() {
     glClear(GL_COLOR_BUFFER_BIT);
@@ -304,8 +363,12 @@ void display() {
     //rectangleEffect();
     //glColor3f(0, 0, 1);
     //fillPoly(sizeof(polyVertices1) / sizeof(polyVertices1[0]), polyVertices1);
-    glColor3f(0, 1, 0);
-    fillPoly(sizeof(polyVertices) / sizeof(polyVertices[0]), polyVertices);
+    //glColor3f(0, 1, 0);
+    //fillPoly(sizeof(polyVertices) / sizeof(polyVertices[0]), polyVertices);
+    //glRotated(1,0,1,1);
+    //glutSolidCube(200);
+    glRotated(1,0,1,0);
+    myCube(100);
     glutSwapBuffers();
 }
 
@@ -323,8 +386,9 @@ void initOpenGL() {
     vertices[1].set(20, -20, 0, 255, 0);
     vertices[2].set(20, 20, 0, 0, 255);
     vertices[3].set(-20, 20, 255, 255, 255);
-    //customRotate(sizeof(polyVertices) / sizeof(polyVertices[0]), polyVertices, -90);
-    //customRotate(sizeof(polyVertices) / sizeof(polyVertices[0]), polyVertices, -45, polyVertices[1][0], polyVertices[1][1]);
+    //customScale(sizeof(polyVertices) / sizeof(polyVertices[0]), polyVertices, .5);
+    //customTranslate(sizeof(polyVertices) / sizeof(polyVertices[0]), polyVertices, 200,200);
+    //customRotate(sizeof(polyVertices) / sizeof(polyVertices[0]), polyVertices, 45, polyVertices[1][0], polyVertices[1][1]);
 }
 
 void deInitOpenGl() {
