@@ -339,13 +339,13 @@ void myCube(int a){
     fillPoly(sizeof(tmp) / sizeof(tmp[0]), tmp);
     glTranslated(0,0,-a/2);
     glRotated(90,0,1,0);
-    glTranslated(0,0,-a/2);
+    glTranslated(0,0,a/2);
     glColor3ub(0,255,0);
     fillPoly(sizeof(tmp) / sizeof(tmp[0]), tmp);
-    glTranslated(0,0,a);
+    glTranslated(0,0,-a);
     glColor3ub(0,0,255);
     fillPoly(sizeof(tmp) / sizeof(tmp[0]), tmp);
-    glTranslated(0,0,-a/2);
+    glTranslated(0,0,a/2);
     glRotated(-90,0,1,0);
 }
 int rot = 0;
