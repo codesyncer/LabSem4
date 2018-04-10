@@ -6,6 +6,7 @@
 #include <GL/glut.h>
 #include <algorithm>
 #include <cstdio>
+#include <cstring>
 
 using namespace std;
 const int width = 500, height = 500;
@@ -189,10 +190,10 @@ struct Vertex {
 Vertex *vertices = nullptr;
 int polyVertices[][2] = {{-100, -100},
                          {100,  -150},
-                         {70,  100},
+                         {70,   100},
                          {0,    0},
                          {-150, 100},
-                         {-80, 20}};
+                         {-80,  20}};
 //int polyVertices[][2] = {{0, 0},
 //                        {100, 100},
 //                        {100, 0}};
@@ -263,92 +264,126 @@ void fillPoly(int n, int v[][2]) {
         }
     }
 }
-void customTranslate(int n, int v[][2], int x, int y){
-    int rotateMat[3][3] = {{1,0,x},{0,1,y},{0,0,1}};
+
+void customTranslate(int n, int v[][2], int x, int y) {
+    int rotateMat[3][3] = {{1, 0, x},
+                           {0, 1, y},
+                           {0, 0, 1}};
     int r2 = 2, c2 = 1, r1 = 3;
     int result[r1][c2];
-    for(int a=0; a<n; ++a){
-        for(int i=0;i<r1;++i)
-            for(int j=0; j<c2; ++j){
+    for (int a = 0; a < n; ++a) {
+        for (int i = 0; i < r1; ++i)
+            for (int j = 0; j < c2; ++j) {
                 result[i][j] = 0;
-                for(int k=0;k<r2; ++k)
-                    result[i][j] += rotateMat[i][k]*v[a][k];
-                result[i][j] += rotateMat[i][r2]*1;
+                for (int k = 0; k < r2; ++k)
+                    result[i][j] += rotateMat[i][k] * v[a][k];
+                result[i][j] += rotateMat[i][r2] * 1;
             }
-        v[a][0]=round(result[0][0]);
-        v[a][1]=round(result[1][0]);
+        v[a][0] = round(result[0][0]);
+        v[a][1] = round(result[1][0]);
     }
 }
-void customScale(int n, int v[][2], float s, int x=0, int y=0){
-    for(int i=0; i<n; ++i){
-        v[i][0]-=x;
-        v[i][1]-=y;
+
+void customScale(int n, int v[][2], float s, int x = 0, int y = 0) {
+    for (int i = 0; i < n; ++i) {
+        v[i][0] -= x;
+        v[i][1] -= y;
     }
-    float rotateMat[2][2] = {{s,0},{0,s}};
+    float rotateMat[2][2] = {{s, 0},
+                             {0, s}};
     int r2 = 2, c2 = 1, r1 = 2;
     float result[r1][c2];
-    for(int a=0; a<n; ++a){
-        for(int i=0;i<r1;++i)
-            for(int j=0; j<c2; ++j){
+    for (int a = 0; a < n; ++a) {
+        for (int i = 0; i < r1; ++i)
+            for (int j = 0; j < c2; ++j) {
                 result[i][j] = 0;
-                for(int k=0;k<r2; ++k)
-                    result[i][j] += rotateMat[i][k]*v[a][k];
+                for (int k = 0; k < r2; ++k)
+                    result[i][j] += rotateMat[i][k] * v[a][k];
             }
-        v[a][0]=round(result[0][0]);
-        v[a][1]=round(result[1][0]);
+        v[a][0] = round(result[0][0]);
+        v[a][1] = round(result[1][0]);
     }
-    for(int i=0; i<n; ++i){
-        v[i][0]+=x;
-        v[i][1]+=y;
+    for (int i = 0; i < n; ++i) {
+        v[i][0] += x;
+        v[i][1] += y;
     }
 }
-void customRotate(int n, int v[][2], double theta, int x=0, int y=0){
-    for(int i=0; i<n; ++i){
-        v[i][0]-=x;
-        v[i][1]-=y;
+
+void customRotate(int n, int v[][2], double theta, int x = 0, int y = 0) {
+    for (int i = 0; i < n; ++i) {
+        v[i][0] -= x;
+        v[i][1] -= y;
     }
-    theta*=M_PI/180;
+    theta *= M_PI / 180;
     float s = sin(theta), c = cos(theta);
-    float rotateMat[2][2] = {{c, -s},{s, c}};
+    float rotateMat[2][2] = {{c, -s},
+                             {s, c}};
     int r2 = 2, c2 = 1, r1 = 2;
     float result[r1][c2];
-    for(int a=0; a<n; ++a){
-        for(int i=0;i<r1;++i)
-            for(int j=0; j<c2; ++j){
+    for (int a = 0; a < n; ++a) {
+        for (int i = 0; i < r1; ++i)
+            for (int j = 0; j < c2; ++j) {
                 result[i][j] = 0;
-                for(int k=0;k<r2; ++k)
-                    result[i][j] += rotateMat[i][k]*v[a][k];
+                for (int k = 0; k < r2; ++k)
+                    result[i][j] += rotateMat[i][k] * v[a][k];
             }
-        v[a][0]=round(result[0][0]);
-        v[a][1]=round(result[1][0]);
+        v[a][0] = round(result[0][0]);
+        v[a][1] = round(result[1][0]);
     }
-    for(int i=0; i<n; ++i){
-        v[i][0]+=x;
-        v[i][1]+=y;
+    for (int i = 0; i < n; ++i) {
+        v[i][0] += x;
+        v[i][1] += y;
     }
 }
-void myCube(int a){
-    int polyVertices[][2] = {{-a/2,-a/2},{a/2,-a/2},{a/2,a/2},{-a/2,a/2}};
+
+void myCube(int a) {
+    int polyVertices[][2] = {{-a / 2, -a / 2},
+                             {a / 2,  -a / 2},
+                             {a / 2,  a / 2},
+                             {-a / 2, a / 2}};
     int tmp[4][2];
     memcpy(tmp, polyVertices, sizeof(polyVertices));
-    glTranslated(0,0,-a/2);
-    glColor3ub(255,255,255);
+    glTranslated(0, 0, -a / 2);
+    glColor3ub(255, 255, 255);
     fillPoly(sizeof(tmp) / sizeof(tmp[0]), tmp);
-    glTranslated(0,0,a);
-    glColor3ub(255,0,0);
+    glTranslated(0, 0, a);
+    glColor3ub(255, 0, 0);
     fillPoly(sizeof(tmp) / sizeof(tmp[0]), tmp);
-    glTranslated(0,0,-a/2);
-    glRotated(90,0,1,0);
-    glTranslated(0,0,a/2);
-    glColor3ub(0,255,0);
+    glTranslated(0, 0, -a / 2);
+    glRotated(90, 0, 1, 0);
+    glTranslated(0, 0, a / 2);
+    glColor3ub(0, 255, 0);
     fillPoly(sizeof(tmp) / sizeof(tmp[0]), tmp);
-    glTranslated(0,0,-a);
-    glColor3ub(0,0,255);
+    glTranslated(0, 0, -a);
+    glColor3ub(0, 0, 255);
     fillPoly(sizeof(tmp) / sizeof(tmp[0]), tmp);
-    glTranslated(0,0,a/2);
-    glRotated(-90,0,1,0);
+    glTranslated(0, 0, a / 2);
+    glRotated(-90, 0, 1, 0);
 }
-int rot = 0;
+
+bool clip(int xmin, int xmax, int ymin, int ymax, int &x0, int &y0, int &x1, int &y1) {
+    int dx = x1 - x0, dy = y1 - y0;
+    int p[] = {-dx, dx, -dy, dy}, q[] = {x0 - xmin, xmax - x0, y0 - ymin, ymax - y0};
+    float u0 = 0, u1 = 1;
+    for (int k = 0; k < 4; ++k) {
+        if (p[k] == 0 && q[k] < 0) return false;
+        if (p[k] == 0 && q[k] >= 0) {
+
+        }
+        if (p[k] != 0)
+            if (p[k] < 0)
+                u0 = max(u0, (float) q[k] / p[k]);
+            else
+                u1 = min(u1, (float) q[k] / p[k]);
+    }
+    if (u0 > u1) return false;
+    x0 = static_cast<int>(x0 + u0 * dx);
+    y0 = static_cast<int>(y0 + u0 * dy);
+    x1 = static_cast<int>(x0 + u1 * dx);
+    y1 = static_cast<int>(y0 + u1 * dy);
+    return true;
+}
+
 void display() {
     glClear(GL_COLOR_BUFFER_BIT);
     //drawLineDDA(-100, -100, 200, 150);
@@ -367,8 +402,22 @@ void display() {
     //fillPoly(sizeof(polyVertices) / sizeof(polyVertices[0]), polyVertices);
     //glRotated(1,0,1,1);
     //glutSolidCube(200);
-    glRotated(1,0,1,0);
-    myCube(100);
+//    glRotated(1,0,1,0);
+//    myCube(100);
+    glBegin(GL_LINE_LOOP);
+    glVertex2i(-200, -200);
+    glVertex2i(100, -200);
+    glVertex2i(100, 50);
+    glVertex2i(-200, 50);
+    glVertex2i(-200, -200);
+    glEnd();
+    int x0 = -250, y0 = -25, x1 = 45, y1 = 220;
+    if (true && clip(-200, 100, -200, 50, x0, y0, x1, y1)) {
+        glBegin(GL_LINES);
+        glVertex2i(x0, y0);
+        glVertex2i(x1, y1);
+        glEnd();
+    }
     glutSwapBuffers();
 }
 
