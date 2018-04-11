@@ -367,20 +367,25 @@ bool clip(int xmin, int xmax, int ymin, int ymax, int &x0, int &y0, int &x1, int
     float u0 = 0, u1 = 1;
     for (int k = 0; k < 4; ++k) {
         if (p[k] == 0 && q[k] < 0) return false;
-        if (p[k] == 0 && q[k] >= 0) {
-
+        if (p[k] == 0 && q[k] >= 0){
+            y0 = max(y0, ymin);
+            y1 = min(y1, ymax);
+            x0 = max(x0, xmin);
+            x1 = min(x1, xmax);
+            return true;
         }
-        if (p[k] != 0)
+        if (p[k] != 0){
             if (p[k] < 0)
                 u0 = max(u0, (float) q[k] / p[k]);
             else
                 u1 = min(u1, (float) q[k] / p[k]);
+        }
     }
     if (u0 > u1) return false;
-    x0 = static_cast<int>(x0 + u0 * dx);
-    y0 = static_cast<int>(y0 + u0 * dy);
-    x1 = static_cast<int>(x0 + u1 * dx);
-    y1 = static_cast<int>(y0 + u1 * dy);
+    x0 = (int)(x0 + u0 * dx);
+    y0 = (int)(y0 + u0 * dy);
+    x1 = (int)(x0 + u1 * dx);
+    y1 = (int)(y0 + u1 * dy);
     return true;
 }
 
@@ -411,7 +416,10 @@ void display() {
     glVertex2i(-200, 50);
     glVertex2i(-200, -200);
     glEnd();
-    int x0 = -250, y0 = -25, x1 = 45, y1 = 220;
+//    int x0 = 0, y0 = 0, x1 = -240, y1 = -180;
+//    int x0 = -230, y0 = -100, x1 = -100, y1 = -150;
+//    int x0 = -100, y0 = -250, x1 = -100, y1 = 125;
+    int x0 = -250, y0 = -235, x1 = -220, y1 = 100;
     if (true && clip(-200, 100, -200, 50, x0, y0, x1, y1)) {
         glBegin(GL_LINES);
         glVertex2i(x0, y0);
