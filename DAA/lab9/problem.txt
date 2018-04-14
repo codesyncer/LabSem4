@@ -1,0 +1,4 @@
+1. Implement the dynamic programming based algorithm to compute the edit distance of two strings. Read in two strings and print the edit distance between them. Also print the optimal alignment that produces this distance.
+
+
+2. Implement the Bellman-Ford algorithm to compute the shortest paths from a source vertex to every other vertex in the graph. Read in a weighted graph and a source vertex and output the length of the shortest path from the source vertex to every other vertex. Print the distance table during each iteration of the algorithm. Your program should also be able to detect if the input graph has a negative weight cycle.
