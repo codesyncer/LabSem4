@@ -9,38 +9,83 @@
 #include <cstring>
 
 using namespace std;
-const int width = 500, height = 500;
+const int width = 1000, height = 1000;
+
 
 void drawLineDDA(int x1, int y1, int x2, int y2) {
     int dx = x2 - x1, dy = y2 - y1;
-    int steps = max(abs(dx), abs(dy));
-    float xInc = (float) dx / steps, yInc = (float) dy / steps;
-    float x = x1, y = y1;
-    glBegin(GL_POINTS);
-    while (steps-- >= 0) {
-        glVertex2i((int) round(x), (int) round(y));
+    int step = max(abs(dx), abs(dy)), i = 0;
+    float xInc = (float) dx / step, yInc = (float) dy / step;
+    auto *vertices = new GLint[2 * (step + 1)];
+    float x = x2, y = y1;
+    while (step-- >= 0) {
+        vertices[i] = static_cast<GLint>(round(x));
+        vertices[i + 1] = static_cast<GLint>(round(y));
+        i += 2;
         x += xInc;
         y += yInc;
     }
-    glEnd();
+    glVertexPointer(2, GL_INT, 2 * sizeof(GLint), vertices);
+    glDrawArrays(GL_POINTS, 0, i / 2);
+    delete (vertices);
 }
 
 void drawLineBresenham(int x1, int y1, int x2, int y2) {
-    int dx = x2 - x1, dy = abs(y2 - y1);
-    int p = 2 * dy + dx;
+    bool draw_xy = true;
+    float m = (float) (y2 - y1) / (x2 - x1);
+    if (y2 > y1) {
+//        oct 1
+        if (0 <= m && m <= 1) {
+        }
+//        oct 2 & 3
+        else if (m > 1 || m < -1) {
+            swap(x1, y1);
+            swap(x2, y2);
+            draw_xy = false;
+        }
+//        oct 4
+        else if (m > -1) {
+            swap(x1, x2);
+            swap(y1, y2);
+        }
+    } else {
+//        oct 5
+        if (0 <= m && m <= 1) {
+            swap(x1, x2);
+            swap(y1, y2);
+        }
+//        oct 6 & 7
+        else if (m > 1 || m < -1) {
+            swap(x1, x2);
+            swap(y1, y2);
+            swap(x1, y1);
+            swap(x2, y2);
+            draw_xy = false;
+        }
+//        oct 8
+        else if (m > -1) {
+        }
+    }
+    int dx = abs(x2 - x1), dy = abs(y2 - y1);
+    int p = 2 * dy - dx;
     int x = x1, y = y1;
-    int dec = 2 * dx, inc = 2 * dy;
-    glBegin(GL_POINTS);
+    int dec = 2 * dx, inc = 2 * dy, i = 0;
+    auto *vertices = new GLint[2 * (abs(dx) + 1)];
+    bool inc_y = y < y2;
     while (x <= x2) {
-        glVertex2i(x, y);
+        vertices[i] = draw_xy ? x : y;
+        vertices[i + 1] = draw_xy ? y : x;
+        i += 2;
         ++x;
         if (p >= 0) {
-            --y;
+            y = y + (inc_y ? 1 : -1);
             p -= dec;
         }
         p += inc;
     }
-    glEnd();
+    glVertexPointer(2, GL_INT, 2 * sizeof(GLint), vertices);
+    glDrawArrays(GL_POINTS, 0, i / 2);
+    delete (vertices);
 }
 
 void drawCircleNaive(int xc, int yc, int r) {
@@ -328,7 +373,7 @@ void customRotate(int n, int v[][2], double theta, int x = 0, int y = 0) {
                     result[i][j] += rotateMat[i][k] * v[a][k];
             }
         v[a][0] = round(result[0][0]);
-        v[a][1] = round(result[1][0]);
+        v[a][1] = static_cast<int>(round(result[1][0]));
     }
     for (int i = 0; i < n; ++i) {
         v[i][0] += x;
@@ -361,41 +406,67 @@ void myCube(int a) {
     glRotated(-90, 0, 1, 0);
 }
 
-bool clip(int xmin, int xmax, int ymin, int ymax, int &x0, int &y0, int &x1, int &y1) {
-    int dx = x1 - x0, dy = y1 - y0;
-    int p[] = {-dx, dx, -dy, dy}, q[] = {x0 - xmin, xmax - x0, y0 - ymin, ymax - y0};
+bool clip(int xmin, int xmax, int ymin, int ymax, int &x1, int &y1, int &x2, int &y2) {
+    int dx = x2 - x1, dy = y2 - y1;
+    int p[] = {-dx, dx, -dy, dy}, q[] = {x1 - xmin, xmax - x1, y1 - ymin, ymax - y1};
     float u0 = 0, u1 = 1;
     for (int k = 0; k < 4; ++k) {
         if (p[k] == 0 && q[k] < 0) return false;
-        if (p[k] == 0 && q[k] >= 0){
-            y0 = max(y0, ymin);
-            y1 = min(y1, ymax);
-            x0 = max(x0, xmin);
-            x1 = min(x1, xmax);
+        if (p[k] == 0 && q[k] >= 0) {
+            y1 = max(y1, ymin);
+            y2 = min(y2, ymax);
+            x1 = max(x1, xmin);
+            x2 = min(x2, xmax);
             return true;
         }
-        if (p[k] != 0){
+        if (p[k] != 0) {
             if (p[k] < 0)
                 u0 = max(u0, (float) q[k] / p[k]);
             else
                 u1 = min(u1, (float) q[k] / p[k]);
+
         }
     }
     if (u0 > u1) return false;
-    x0 = (int)(x0 + u0 * dx);
-    y0 = (int)(y0 + u0 * dy);
-    x1 = (int)(x0 + u1 * dx);
-    y1 = (int)(y0 + u1 * dy);
+    x2 = (int) (x1 + u1 * dx);
+    y2 = (int) (y1 + u1 * dy);
+    x1 = (int) (x1 + u0 * dx);
+    y1 = (int) (y1 + u0 * dy);
     return true;
+}
+
+void clipDemo() {
+    glBegin(GL_LINE_LOOP);
+    glVertex2i(-200, -200);
+    glVertex2i(100, -200);
+    glVertex2i(100, 50);
+    glVertex2i(-200, 50);
+    glVertex2i(-200, -200);
+    glEnd();
+    int x1, x2, y2, y1;
+    x1 = -240, y1 = -100, x2 = 240, y2 = 180;
+//    x1 = 0, y1 = 100, x2 = 240, y2 = -150;
+//    x1 = -100, y1 = -240, x2 = 80, y2 = 80;
+//    x1 = 0, y1 = 0, x2 = -240, y2 = 25;
+    if (clip(-200, 100, -200, 50, x1, y1, x2, y2)) {
+        glBegin(GL_LINES);
+        glVertex2i(x1, y1);
+        glVertex2i(x2, y2);
+        glEnd();
+    }
 }
 
 void display() {
     glClear(GL_COLOR_BUFFER_BIT);
-    //drawLineDDA(-100, -100, 200, 150);
-    //drawLineBresenham(-120, 80, 0, 0);
-    //drawLineBresenham(-100, 80, 0, 0);
-    //drawCircleNaive(100, 100, 140);
-    //drawCircleAngular(100, 100, 130);
+//    drawLineDDA(0, 0, 200, 50);
+//    drawLineBresenham(0, 0, 200, 150);
+//    drawLineBresenham(0, 0, 150, 200);
+//    drawLineBresenham(0, 0, -150, 200);
+//    drawLineBresenham(0, 0, -200, 150);
+//    drawLineBresenham(0, 0, -200, -150);
+//    drawLineBresenham(0, 0, -150, -200);
+//    drawLineBresenham(0, 0, 150, -200);
+//    drawLineBresenham(0, 0, 200, -150);
     //drawCircleMidPoint(100, 100, 50);
     //drawCircleMidPoint(-100, -100, 50);
     //drawEllipseAngular(-100, -100, 100, 75);
@@ -409,35 +480,19 @@ void display() {
     //glutSolidCube(200);
 //    glRotated(1,0,1,0);
 //    myCube(100);
-    glBegin(GL_LINE_LOOP);
-    glVertex2i(-200, -200);
-    glVertex2i(100, -200);
-    glVertex2i(100, 50);
-    glVertex2i(-200, 50);
-    glVertex2i(-200, -200);
-    glEnd();
-//    int x0 = 0, y0 = 0, x1 = -240, y1 = -180;
-//    int x0 = -230, y0 = -100, x1 = -100, y1 = -150;
-//    int x0 = -100, y0 = -250, x1 = -100, y1 = 125;
-    int x0 = -250, y0 = -235, x1 = -220, y1 = 100;
-    if (true && clip(-200, 100, -200, 50, x0, y0, x1, y1)) {
-        glBegin(GL_LINES);
-        glVertex2i(x0, y0);
-        glVertex2i(x1, y1);
-        glEnd();
-    }
+    clipDemo();
     glutSwapBuffers();
 }
 
 void reshape(int w, int h) {
-    glViewport(0, 0, w, h);
+    glViewport(w / 2 - h / 2, 0, h, h);
 }
 
 void initOpenGL() {
-    glOrtho(-250, 250, -250, 250, -250, 250);
-    glClearColor(0, 0, 0, 0);
+    gluOrtho2D(-width / 2, width / 2, -height / 2, height / 2);
+    glClearColor(.05, .05, .05, 0);
     glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_COLOR_ARRAY);
+//    glEnableClientState(GL_COLOR_ARRAY);
     vertices = new Vertex[4];
     vertices[0].set(-20, -20, 255, 0, 0);
     vertices[1].set(20, -20, 0, 255, 0);
@@ -450,14 +505,14 @@ void initOpenGL() {
 
 void deInitOpenGl() {
     glDisableClientState(GL_VERTEX_ARRAY);
-    glDisableClientState(GL_COLOR_ARRAY);
+//    glDisableClientState(GL_COLOR_ARRAY);
     delete vertices;
 }
 
 int main(int argc, char **argv) {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
-    glutInitWindowSize(width, height);
+    glutInitWindowSize(500, 500);
     glutInitWindowPosition(0, 0);
     glutCreateWindow("CG");
     initOpenGL();
