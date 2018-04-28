@@ -1,0 +1,20 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/srinag/Projects/LabSem4/DAA/lab8/Huffman/main.cpp
+queue
+-
+map
+-
+iostream
+-
+fcntl.h
+-
+fstream
+-
+
